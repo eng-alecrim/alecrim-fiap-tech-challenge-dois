@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "tech-challenge-dois"
+version = "0.1.0"
+description = ""
+authors = ["eng-alecrim <lucasalecrimvieira@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+pytest-mock = "^3.14.0"
+pytest-cov = "^5.0.0"
+taskipy = "^1.13.0"
+ruff = "^0.6.4"
+ignr = "^2.2"
+black = "^24.8.0"
+catppuccin-jupyterlab = "^0.2.4"
+jupyterlab = "^4.2.5"
+factory-boy = "^3.3.1"
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+preview = true
+select = ["I", "F", "E", "W", "PL", "PT"]
+ignore = ["PLR1711", "E731"]
+
+[tool.ruff.format]
+preview = true
+quote-style = "double"
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = "-p no:warnings"
+
+[tool.taskipy.tasks]
+lint = "ruff check . && ruff check . --diff"
+format = "ruff check . --fix && ruff format ."
+pre_test = "task lint"
+test= "pytest tests -s -x --cov=tech_challenge_dois --cov-report=html:coverage_report -vv"
+jupyter = "python -m jupyterlab"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
