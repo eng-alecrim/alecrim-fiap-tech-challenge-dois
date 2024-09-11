@@ -8,5 +8,8 @@ COPY ./tech_challenge_dois /tech-challenge-dois/tech_challenge_dois
 COPY ./pyproject.toml /tech-challenge-dois/pyproject.toml
 COPY ./.env /tech-challenge-dois/.env
 
+COPY ./run_scraper.sh /tech-challenge-dois/run_scraper.sh
+RUN chmod +x /tech-challenge-dois/run_scraper.sh
+
 RUN pip install poetry
 RUN poetry install --without dev

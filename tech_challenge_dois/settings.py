@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     SELENIUM_FIREFOX_URL: str
     URL_B3: str
     HEADLESS_WEBDRIVER: bool
+    RUN_ON_HOUR: int
+    RUN_ON_MINUTE: int
 
 
 settings = Settings()

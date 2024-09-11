@@ -10,16 +10,17 @@ services:
     container_name: selenium-firefox
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
-      interval: 30s 
-      timeout: 10s
-      retries: 5
+      interval: 5s
+      timeout: 30s
+      retries: 10
   scraping:
     build:
       context: .
       dockerfile: Dockerfile.scraping
+    command: ["/tech-challenge-dois/run_scraper.sh"]
     volumes:
       - ./data:/tech-challenge-dois/data/
+      - ./data/cron.log:/var/log/cron.log
     depends_on:
       selenium:
         condition: service_healthy
-    command: ["python", "/tech-challenge-dois/main.py"]
