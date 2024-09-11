@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import boto3
 import pandas as pd
 
 from tech_challenge_dois.settings import settings
@@ -50,5 +51,24 @@ def process_and_export_file(filepath: str) -> None:
     filename = Path(filepath).stem
     destination_path = f"{settings.PARQUET_FILES_DIR}/{filename}.parquet"
     df_final.to_parquet(destination_path, engine="fastparquet")
+
+    if settings.SAVE_ON_AWS_S3_BUCKET:
+        s3 = boto3.resource(
+            "s3",
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            aws_session_token=settings.AWS_SESSION_TOKEN,
+        )
+        bucket = s3.Bucket(settings.BUCKET_NAME)
+        s3_file_path = (
+            f"{settings.BUCKET_FILE_DIRECTORY}/{filename}.parquet"
+            if settings.BUCKET_FILE_DIRECTORY
+            else f"{filename}.parquet"
+        )
+        with open(destination_path, "rb") as data:
+            bucket.put_object(Key=s3_file_path, Body=data)
+        if settings.REMOVE_LOCAL_AFTER_SAVE_ON_S3:
+            Path(filepath).unlink()
+            Path(destination_path).unlink()
 
     return None

@@ -10,7 +10,6 @@ TODAY = datetime.today().date()
 
 
 def time_to_run() -> bool:
-
     scheduled_time = BRAZIL_TIME_ZONE.localize(
         datetime.combine(TODAY, datetime.min.time())
         + timedelta(
