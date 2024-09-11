@@ -20,7 +20,6 @@ services:
     command: ["/tech-challenge-dois/run_scraper.sh"]
     volumes:
       - ./data:/tech-challenge-dois/data/
-      - ./data/cron.log:/var/log/cron.log
     depends_on:
       selenium:
         condition: service_healthy
