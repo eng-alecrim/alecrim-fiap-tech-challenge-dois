@@ -8,7 +8,7 @@ Autoria: Lucas Alecrim.
 
 Este código faz download dos dados da Carteira do Dia diretamente do [site da B3](https://sistemaswebb3-listados.b3.com.br/indexPage/day/ibov?language=pt-br) por *Setor de Atuação* utilizando web scraping.
 
-![Esquema geral da solução](docs/Esquema geral.png)
+![Esquema geral da solução](https://github.com/eng-alecrim/alecrim-fiap-tech-challenge-dois/blob/main/docs/Esquema%20geral.png)
 
 ## Utilização
 
