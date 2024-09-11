@@ -1,0 +1,25 @@
+services:
+  selenium:
+    image: selenium/standalone-firefox:latest
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    shm_size: "2g"
+    volumes:
+      - ./data/selenium_downloads:/home/seluser/Downloads/
+    container_name: selenium-firefox
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 30s 
+      timeout: 10s
+      retries: 5
+  scraping:
+    build:
+      context: .
+      dockerfile: Dockerfile.scraping
+    volumes:
+      - ./data:/tech-challenge-dois/data/
+    depends_on:
+      selenium:
+        condition: service_healthy
+    command: ["python", "/tech-challenge-dois/main.py"]

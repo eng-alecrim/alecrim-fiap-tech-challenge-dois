@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+
+ENV POETRY_VIRTUALENVS_CREATE=0
+
+WORKDIR /tech-challenge-dois
+COPY ./main.py /tech-challenge-dois/main.py
+COPY ./tech_challenge_dois /tech-challenge-dois/tech_challenge_dois
+COPY ./pyproject.toml /tech-challenge-dois/pyproject.toml
+COPY ./.env /tech-challenge-dois/.env
+
+RUN pip install poetry
+RUN poetry install --without dev
