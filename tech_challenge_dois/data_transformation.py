@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from pathlib import Path
 
 import boto3
@@ -16,6 +18,25 @@ def read_csv_file(csv_path: str) -> pd.DataFrame:
         skipfooter=2,
         engine="python",
     )
+
+
+def rename_column_name(input_str: str) -> str:
+    input_str = str(input_str)
+    # Normalizando o texto conforme a forma NFKD
+    nfkd_form = unicodedata.normalize("NFKD", input_str)
+    output_str = "".join([c for c in nfkd_form if not unicodedata.combining(c)])
+    # Removendo as possíveis tags de HTML
+    regex_tags = r"</?.>"
+    output_str = re.sub(regex_tags, "", output_str)
+    # Substituindo os caracteres especiais e números (tudo o que NÃO estiver de A-z)
+    regex = re.compile(r"[^a-zA-Z0-9\s]+")
+    tokens = regex.sub(" ", output_str).split()
+
+    # Removendo possíveis espaços em branco no início e/ou fim da str
+    output_str = " ".join(map(lambda x: x.strip(), tokens))
+
+    # Retorna algo apenas se o resultado NÃO for uma str vazia
+    return output_str.replace(" ", "_").upper()
 
 
 def data_transformation(df_raw: pd.DataFrame) -> pd.DataFrame:
@@ -41,6 +62,11 @@ def data_transformation(df_raw: pd.DataFrame) -> pd.DataFrame:
         )
     )
     df_final = df_final.astype(columns_dtype_mapping)
+
+    column_rename_mapping = dict(
+        zip(df_final.columns, map(rename_column_name, df_final.columns))
+    )
+    df_final.rename(columns=column_rename_mapping, inplace=True)
 
     return df_final
 
