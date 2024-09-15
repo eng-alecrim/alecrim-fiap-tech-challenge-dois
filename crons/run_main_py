@@ -1,0 +1,2 @@
+0 20 * * 1-5 /tech-challenge-dois/run_scraper.sh >> /var/log/cron.log 2>&1
+#

@@ -17,9 +17,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.scraping
-    command: ["/tech-challenge-dois/run_scraper.sh"]
+    command: ["cron", "-f"]
     volumes:
       - ./data:/tech-challenge-dois/data/
+      - ./log:/tech-challenge-dois/log/
     depends_on:
       selenium:
         condition: service_healthy

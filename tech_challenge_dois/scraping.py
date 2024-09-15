@@ -2,15 +2,21 @@ import time
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 
+from loguru import logger
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from tech_challenge_dois.settings import settings
+from tech_challenge_dois.settings import logger_config, settings
+from tech_challenge_dois.utils import (
+    current_downloaded_csv_files,
+    log_function,
+)
 
 Path(settings.DOWNLOAD_DIR).mkdir(exist_ok=True, parents=True)
+logger.configure(**logger_config.model_dump())
 
 
 def webdriver_options(headless: bool) -> Options:
@@ -44,6 +50,7 @@ def scroll_into_view_and_click(
     return None
 
 
+@log_function
 def wait_for_download(counter: int = 0) -> Optional[Callable]:
     if counter > settings.MAX_RETRIES:
         return None
@@ -55,28 +62,37 @@ def wait_for_download(counter: int = 0) -> Optional[Callable]:
     return None
 
 
+@log_function
 def download_file(headless: bool = settings.HEADLESS_WEBDRIVER) -> str:
-    download_dir = Path(settings.DOWNLOAD_DIR)
-    current_csv_files = list(download_dir.glob("*.csv"))
+    current_csv_files = current_downloaded_csv_files()
 
     webdriver = get_webdriver(headless=headless)
+    logger.debug("download_file: Navegador aberto.")
     webdriver.get(settings.URL_B3)
 
     dropdown_identifier = ("xpath", "//*[@id='segment']")
     scroll_into_view_and_click(webdriver, dropdown_identifier)
+    logger.debug("download_file: Botão de dropdown ativado.")
 
     setor_atuacao_identifier = ("css selector", "#segment > option:nth-child(2)")
     scroll_into_view_and_click(webdriver, setor_atuacao_identifier)
+    logger.debug("download_file: 'Setor de Atuação' selecionado.")
 
     download_button_identifier = ("xpath", "//a[text()='Download']")
     scroll_into_view_and_click(webdriver, download_button_identifier)
+    logger.debug("download_file: Download iniciado.")
 
+    logger.debug("download_file: Aguardando o fim do download . . .")
     wait_for_download()
+    logger.debug("download_file: Download concluído!.")
 
     downloaded_file = [
-        file for file in download_dir.glob("*.csv") if file not in current_csv_files
+        file
+        for file in Path(settings.DOWNLOAD_DIR).glob("*.csv")
+        if file not in current_csv_files
     ]
 
     webdriver.quit()
+    logger.debug("download_file: Navegador encerrado.")
 
     return str(downloaded_file[0].absolute())

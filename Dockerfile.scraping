@@ -3,13 +3,26 @@ FROM python:3.12-slim
 ENV POETRY_VIRTUALENVS_CREATE=0
 
 WORKDIR /tech-challenge-dois
-COPY ./main.py /tech-challenge-dois/main.py
+
 COPY ./tech_challenge_dois /tech-challenge-dois/tech_challenge_dois
 COPY ./pyproject.toml /tech-challenge-dois/pyproject.toml
+COPY ./configs/ /tech-challenge-dois/configs/
 COPY ./.env /tech-challenge-dois/.env
 
+COPY ./main.py /tech-challenge-dois/main.py
+RUN chmod a+rwx /tech-challenge-dois/main.py
+
 COPY ./run_scraper.sh /tech-challenge-dois/run_scraper.sh
-RUN chmod +x /tech-challenge-dois/run_scraper.sh
+RUN chmod a+rwx /tech-challenge-dois/run_scraper.sh
 
 RUN pip install poetry
 RUN poetry install --without dev
+
+RUN apt-get update && apt-get install -y cron
+
+COPY ./crons/run_main_py /etc/cron.d/run_main_py
+RUN chmod 0644 /etc/cron.d/run_main_py
+
+RUN crontab /etc/cron.d/run_main_py
+
+RUN touch /var/log/cron.log

@@ -14,6 +14,7 @@ pydantic-settings = "^2.5.0"
 pandas = "^2.2.2"
 fastparquet = "^2024.5.0"
 boto3 = "^1.35.17"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

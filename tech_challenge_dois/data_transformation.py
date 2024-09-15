@@ -2,11 +2,14 @@ import re
 import unicodedata
 from pathlib import Path
 
-import boto3
 import pandas as pd
-from botocore.exceptions import ClientError
+from loguru import logger
 
-from tech_challenge_dois.settings import settings
+from tech_challenge_dois.aws_utils import save_on_s3
+from tech_challenge_dois.settings import logger_config, settings
+from tech_challenge_dois.utils import log_function
+
+logger.configure(**logger_config.model_dump())
 
 
 def read_csv_file(csv_path: str) -> pd.DataFrame:
@@ -39,6 +42,7 @@ def rename_column_name(input_str: str) -> str:
     return output_str.replace(" ", "_").upper()
 
 
+@log_function
 def data_transformation(df_raw: pd.DataFrame) -> pd.DataFrame:
     original_columns = df_raw.columns.to_list() + ["to_drop"]
 
@@ -71,60 +75,33 @@ def data_transformation(df_raw: pd.DataFrame) -> pd.DataFrame:
     return df_final
 
 
-def s3_file_exists(file_key: str) -> bool:
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY,
-        aws_secret_access_key=settings.AWS_ACCESS_KEY,
-        aws_session_token=settings.AWS_SESSION_TOKEN,
-    )
-
-    try:
-        s3_client.head_object(Bucket=settings.BUCKET_NAME, Key=file_key)
-        return True
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "404":
-            return False
-        else:
-            return False  # TODO: Loggar este erro em algum lugar
-
-
-def save_on_s3(filename: str, origin_file_path: str) -> None:
-    s3_file_path = (
-        f"{settings.BUCKET_FILE_DIRECTORY}/{filename}.parquet"
-        if settings.BUCKET_FILE_DIRECTORY
-        else f"{filename}.parquet"
-    )
-
-    if s3_file_exists(file_key=s3_file_path):
-        return None
-
-    s3 = boto3.resource(
-        "s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY,
-        aws_secret_access_key=settings.AWS_SECRET_KEY,
-        aws_session_token=settings.AWS_SESSION_TOKEN,
-    )
-    bucket = s3.Bucket(settings.BUCKET_NAME)
-
-    with open(origin_file_path, "rb") as data:
-        bucket.put_object(Key=s3_file_path, Body=data)
-
-    return None
-
-
+@log_function
 def process_and_export_file(filepath: str) -> None:
+    logger.debug(
+        f"process_and_export_file: Carregando e tratando o arquivo '{filepath}' . . ."
+    )
     df_raw = read_csv_file(filepath)
     df_final = data_transformation(df_raw)
+    logger.success("process_and_export_file: Arquivo carregado e tratado.")
 
     filename = Path(filepath).stem
     destination_path = f"{settings.PARQUET_FILES_DIR}/{filename}.parquet"
+    logger.debug(
+        f"process_and_export_file: Salvando o arquivo em '{destination_path}' . . ."
+    )
     df_final.to_parquet(destination_path, engine="fastparquet")
+    logger.success("process_and_export_file: Arquivo salvo.")
 
     if settings.SAVE_ON_AWS_S3_BUCKET:
+        logger.debug(
+            "process_and_export_file: Salvando o arquivo em no S3 da AWS . . ."
+        )
         save_on_s3(filename=filename, origin_file_path=destination_path)
+        logger.success("process_and_export_file: Arquivo salvo.")
         if settings.REMOVE_LOCAL_AFTER_SAVE_ON_S3:
+            logger.debug("process_and_export_file: Removendo os arquivos locais . . .")
             Path(filepath).unlink()
             Path(destination_path).unlink()
+            logger.success("process_and_export_file: Arquivos removidos.")
 
     return None

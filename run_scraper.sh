@@ -1,2 +1,3 @@
 #!/bin/bash
-python /tech-challenge-dois/main.py
+cd /tech-challenge-dois
+/usr/local/bin/python ./main.py
