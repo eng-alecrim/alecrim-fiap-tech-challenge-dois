@@ -40,7 +40,7 @@ def already_done_today() -> Tuple[bool, str]:
     utc_now = datetime.now(UTC).strftime(format="%d-%m-%y")
 
     files = current_downloaded_csv_files()
-    f_filter = lambda file: utc_now in file
+    f_filter = lambda file: utc_now in str(file)
     files_today = list(filter(f_filter, files))
 
     if files_today:

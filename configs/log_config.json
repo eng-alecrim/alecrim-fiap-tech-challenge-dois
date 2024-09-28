@@ -20,13 +20,6 @@
       "retention": "1 month",
       "level": "WARNING",
       "format": "{time} | {level} | {message}"
-    },
-    {
-      "sink": "stdout",
-      "level": "INFO",
-      "format": "{time} | {level} | {message}",
-      "colorize": "True",
-      "backtrace": "True"
     }
   ]
 }
